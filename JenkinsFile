@@ -1,0 +1,57 @@
+pipeline {
+
+     parameters {
+        string(name: 'intial_num', defaultValue: '', description: '')
+		string(name: 'last_num', defaultValue: '', description: '')
+	}
+    
+   
+    agent {label "master"}
+    
+    stages {
+    
+        stage ('Checkout') {
+		   steps{
+			  cleanWs()
+              checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/ziatahir/cpp_prime_numbers.git']]])
+              }
+		   }
+            
+          
+	
+        stage('Compile') {
+           steps {
+		      echo "Compiling using g++ complier"
+              sh '''
+                 # use makefile to generate object file
+                 make
+                 # link multiple object file
+                 g++ -o main main.o primes.o primes_in_range.o 
+                 # list files
+                 ls -ltr
+			  '''
+             }
+        }
+        
+        stage('Packaging Nexus') {
+           steps {
+		      echo "Upload to Nexus"
+              sh '''
+                echo "Upload to Nexus"
+			  '''
+             }
+        }
+        
+        stage('Deploy') {
+           steps {
+		      echo "display prime numbers in specified range"
+              sh '''
+                 ./main $intial_num $last_num
+			  '''
+             }
+        }
+       
+        
+    }
+    
+}
